@@ -1,32 +1,32 @@
 ---
 name: task-splitter
 description: |
-  MANDATORY: Invoke this agent immediately after ANY plan approval. Never start implementation without first running task-splitter to create beads issues. This is a blocking requirement - implementation cannot proceed until issues are created.
+  Use this agent to decompose implementation plans into beads issues. This agent should be invoked PROACTIVELY in plan mode, AFTER plan-reviewer completes but BEFORE calling ExitPlanMode. The prepared commands are shown to the user as part of the plan approval.
 
   <example>
-  Context: User just approved the plan. Assistant's next action MUST be task-splitter.
-  user: "Looks good, let's do it"
-  assistant: [Invokes task-splitter agent via Task tool]
+  Context: plan-reviewer just completed, about to call ExitPlanMode.
+  user: [No new message - assistant proactively prepares tasks]
+  assistant: "Plan review complete. Now let me run task-splitter to prepare the implementation tasks before showing you the final plan."
   <commentary>
-  Plan approved. IMMEDIATELY invoke task-splitter as first action. Do NOT write any code or start implementation until task-splitter completes and issues are created.
+  Plan reviewed. PROACTIVELY invoke task-splitter to prepare bd commands BEFORE ExitPlanMode. This ensures users see what issues will be created when they approve.
   </commentary>
   </example>
 
   <example>
-  Context: ExitPlanMode completed and user confirmed approval.
-  user: "Yes, proceed"
-  assistant: [Invokes task-splitter agent via Task tool]
+  Context: Assistant finished plan and plan-reviewer, preparing for ExitPlanMode.
+  user: [No new message - assistant proactively prepares tasks]
+  assistant: "I'll run task-splitter to break this into trackable issues, then present the complete plan for approval."
   <commentary>
-  BLOCKING: Must run task-splitter before ANY implementation work. This is not optional - it's the required first step after plan approval.
+  Sequence: plan-reviewer → task-splitter → ExitPlanMode. Never call ExitPlanMode without first preparing beads issues.
   </commentary>
   </example>
 
   <example>
-  Context: User approved plan but explicitly opts out of task splitting.
-  user: "Approve, but skip beads - I'll track manually"
-  assistant: "Understood, skipping task-splitter as requested."
+  Context: User explicitly opts out of beads tracking.
+  user: "Skip beads for this plan"
+  assistant: "Understood, skipping task-splitter."
   <commentary>
-  ONLY skip when user EXPLICITLY requests no beads/task-splitting. Phrases like "let's start" or "proceed" do NOT opt out.
+  ONLY skip when user EXPLICITLY requests no beads. Default is always to prepare issues.
   </commentary>
   </example>
 model: opus
@@ -136,7 +136,7 @@ When splitting tasks:
 
 ## Output Structure
 
-**IMPORTANT:** Output must include TWO sections:
+**IMPORTANT:** Output must include THREE sections:
 
 ### Section 1: Issue Creation Commands
 ```bash
@@ -153,6 +153,30 @@ bd create --title="..." --type=task --priority=2 --description="..."
 bd dep add <child-id> <parent-id>   # child depends on parent
 ```
 
+### Section 3: Post-Approval Reminder
+Always end output with:
+```
+## After Approval
+1. Execute all bd create commands above
+2. Execute bd dep add commands
+3. Run `bd ready` to find first task
+4. Claim with `bd update <id> --claim`
+5. Implement that issue, close it, repeat
+```
+
 **Note:** Issue IDs are returned by `bd create`. Dependencies must be added after issues exist.
 
-The agent will analyze the plan and output ready-to-run `bd create` commands. Review the commands before executing.
+## Post-Approval Workflow
+
+After user approves the plan, the assistant MUST:
+
+1. **Execute the prepared commands** - Run all `bd create` commands to create issues
+2. **Add dependencies** - Run `bd dep add` commands
+3. **Start implementation via beads** - Use `bd ready` to find the first unblocked issue, claim it with `bd update <id> --claim`, then implement
+
+**CRITICAL:** Implementation MUST be driven by beads issues. Never implement plan items directly - always claim the corresponding beads issue first. This ensures:
+- Work is tracked and resumable across sessions
+- Dependencies are respected (blocked issues won't show in `bd ready`)
+- Progress is visible via `bd stats`
+
+The agent outputs ready-to-run commands. Do NOT execute during the agent run - wait for user approval via ExitPlanMode.
