@@ -1,31 +1,31 @@
 #!/bin/bash
 # Ensure beads daemon runs with correct flags
-# Exit codes: 0 = success, 1 = error (non-fatal, won't block session)
+# Always exits 0 - never blocks session startup
+
+set +e  # Don't exit on errors
 
 # Check if bd command exists
 if ! command -v bd &>/dev/null; then
-  echo "beads not installed, skipping daemon check"
-  exit 0
+  exit 0  # Silent exit - beads not installed
 fi
 
 # Check if in a beads-enabled directory
 if [ ! -d ".beads" ]; then
-  echo "Not a beads directory, skipping daemon check"
-  exit 0
+  exit 0  # Silent exit - not a beads project
 fi
 
-if status=$(bd daemon --status 2>/dev/null); then
+# Check daemon status
+if status=$(bd daemon --status 2>&1); then
   # Daemon running - check if flags are correct
   if echo "$status" | grep -q "Auto-Commit: true" && echo "$status" | grep -q "Auto-Push: true"; then
-    echo "Daemon running with correct flags"
-    exit 0
+    exit 0  # Already running with correct flags
   fi
   # Wrong flags - stop and restart
-  echo "Daemon running with wrong flags, restarting..."
-  bd daemon --stop 2>/dev/null
-  sleep 0.5  # Brief pause to ensure clean shutdown
+  bd daemon --stop 2>/dev/null || true
+  sleep 0.5
 fi
 
-# Start with correct flags
-echo "Starting daemon with --auto-commit --auto-push"
-bd daemon --start --auto-commit --auto-push
+# Start with correct flags (suppress output, ignore errors)
+bd daemon --start --auto-commit --auto-push >/dev/null 2>&1 || true
+
+exit 0
