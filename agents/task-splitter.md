@@ -159,9 +159,8 @@ Always end output with:
 ## After Approval
 1. Execute all bd create commands above
 2. Execute bd dep add commands
-3. Run `bd ready` to find first task
-4. Claim with `bd update <id> --claim`
-5. Implement that issue, close it, repeat
+3. STOP - do not start implementation
+4. Provide next session prompt to user
 ```
 
 **Note:** Issue IDs are returned by `bd create`. Dependencies must be added after issues exist.
@@ -172,11 +171,16 @@ After user approves the plan, the assistant MUST:
 
 1. **Execute the prepared commands** - Run all `bd create` commands to create issues
 2. **Add dependencies** - Run `bd dep add` commands
-3. **Start implementation via beads** - Use `bd ready` to find the first unblocked issue, claim it with `bd update <id> --claim`, then implement
+3. **STOP** - Do NOT start implementation
+4. **Provide next session prompt** - Give the user a prompt to begin work in a fresh context
 
-**CRITICAL:** Implementation MUST be driven by beads issues. Never implement plan items directly - always claim the corresponding beads issue first. This ensures:
-- Work is tracked and resumable across sessions
-- Dependencies are respected (blocked issues won't show in `bd ready`)
-- Progress is visible via `bd stats`
+**CRITICAL:** Always stop after creating issues. This allows the user to clear context (`/clear`) before implementation begins. Never start implementing in the same session as planning.
+
+Example next prompt to provide:
+```
+Ready to implement! Use this prompt in a new session:
+
+"Start work on [project]. Run `bd ready` to see available tasks."
+```
 
 The agent outputs ready-to-run commands. Do NOT execute during the agent run - wait for user approval via ExitPlanMode.
