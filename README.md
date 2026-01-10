@@ -83,7 +83,7 @@ Session 3: [Paste prompt] → Complete → /kas:done → /kas:merge
 | `/kas:save` | Snapshot session: push work, generate continuation prompt |
 | `/kas:next` | Find next available beads issue to work on |
 | `/kas:merge` | Merge PR to main, delete branch |
-| `/kas:verify` | Run 6 review agents in parallel, then code-simplifier |
+| `/kas:verify` | Tiered verification: static → reality → simplifier with early-exit |
 | `/kas:review-code` | Standalone code quality review (Linus Torvalds style) |
 | `/kas:review-reality` | Standalone reality assessment (skeptical validation) |
 | `/kas:review-plan` | Review plan for security gaps and design issues |
@@ -111,12 +111,14 @@ Session 3: [Paste prompt] → Complete → /kas:done → /kas:merge
 
 ### Review Commands
 
-**`/kas:verify`** - Comprehensive verification
-- Launches 6 agents in parallel:
-  - kas: code-reviewer, project-reality-manager
+**`/kas:verify`** - Tiered verification with early-exit
+- **Tier 1** (parallel): 5 static analysis agents
+  - kas: code-reviewer
   - pr-review-toolkit: silent-failure-hunter, comment-analyzer, type-design-analyzer, pr-test-analyzer
-- Combines findings with worst-wins logic (VERIFIED / NEEDS CHANGES / BLOCKED)
-- If VERIFIED: runs code-simplifier for optional improvements
+  - Exit: critical/high → BLOCKED, medium → NEEDS CHANGES
+- **Tier 2** (if Tier 1 clean): project-reality-manager
+  - Exit: issues → NEEDS CHANGES/BLOCKED
+- **Tier 3** (if VERIFIED): code-simplifier for optional improvements
 
 **`/kas:review-code`** - Code quality only
 - Ruthless Linus Torvalds style review
