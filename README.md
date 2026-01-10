@@ -44,28 +44,27 @@ claude --plugin-dir ~/dev/kas-plugins
 ```
 PLAN MODE
 ├─ Write implementation plan
-├─ plan-reviewer (auto) → summarize → user approves
-├─ task-splitter (auto) → outputs bd create commands
-└─ ExitPlanMode → user reviews plan + commands
+├─ plan-reviewer (auto) → summarizes findings
+├─ task-splitter (auto) → prepares bd create commands
+└─ ExitPlanMode → user reviews plan + findings + commands
        ↓
-USER APPROVAL
-├─ User approves plan
-├─ Agent executes bd create commands
-├─ Agent stops (provides next session prompt)
+USER APPROVAL (approves everything at once)
+├─ Claude executes bd create commands
+├─ Claude stops (provides next session prompt)
 └─ User: /clear (free context)
        ↓
 IMPLEMENTATION (one or more sessions)
 ├─ [Paste continuation prompt]
 ├─ bd ready → pick issue → implement
-├─ /kas:verify (parallel code + reality review)
+├─ /kas:verify (code + reality review)
 ├─ Quality gates (tests, linting)
-├─ /kas:save (if continuing later) OR /kas:done (if complete)
+├─ /kas:save (if continuing) OR /kas:done (if complete)
 └─ [If /kas:save: /clear → next session]
        ↓
 FINALIZATION
 ├─ /kas:done → commit, push, close issues
-├─ Create PR (if needed)
-└─ /kas:merge → merge to main after PR approval
+├─ Create PR (gh pr create)
+└─ /kas:merge → merge to main, delete branch
 ```
 
 ### Multi-Session Pattern
@@ -83,7 +82,7 @@ Session 3: [Paste prompt] → Complete → /kas:done → /kas:merge
 | `/kas:done` | Complete session: commit, push, close issues, verify daemon |
 | `/kas:save` | Snapshot session: push work, generate continuation prompt |
 | `/kas:next` | Find next available beads issue to work on |
-| `/kas:merge` | Merge PR to main after CI passes |
+| `/kas:merge` | Merge PR to main, delete branch |
 | `/kas:verify` | Run code + reality review in parallel, combine verdicts |
 | `/kas:review-code` | Standalone code quality review (Linus Torvalds style) |
 | `/kas:review-reality` | Standalone reality assessment (skeptical validation) |
@@ -92,11 +91,13 @@ Session 3: [Paste prompt] → Complete → /kas:done → /kas:merge
 ### Session Commands
 
 **`/kas:done`** - Complete and finalize
-- Runs quality gates
 - Closes beads issues
 - Commits and pushes (MANDATORY - work incomplete until push succeeds)
 - Adds PR comment if PR exists
+- Verifies daemon running
 - Suggests next task
+
+*Note: Quality gates should be run before /kas:done*
 
 **`/kas:save`** - Pause for later
 - Commits and pushes current work
@@ -138,10 +139,10 @@ Session 3: [Paste prompt] → Complete → /kas:done → /kas:merge
 ### Agent Workflow
 
 1. **plan-reviewer** runs automatically after you write a plan
-2. Claude summarizes findings → you approve → **task-splitter** runs
-3. task-splitter outputs `bd create` commands → ExitPlanMode
-4. You review plan + commands → approve
-5. Claude executes `bd create` commands → stops with continuation prompt
+2. **task-splitter** runs automatically after plan-reviewer
+3. ExitPlanMode → you review plan + findings + commands together
+4. You approve → Claude executes `bd create` commands
+5. Claude stops with continuation prompt
 6. You `/clear` → implementation happens in fresh session
 
 ## Critical Rules
@@ -162,8 +163,8 @@ These rules are non-negotiable:
    - Fix failures before marking complete
 
 4. **Plan mode order matters**
-   - plan-reviewer → approve → task-splitter → ExitPlanMode
-   - Never skip the approval checkpoint
+   - plan-reviewer → task-splitter → ExitPlanMode → user approval
+   - User approves plan + findings + commands together before execution
 
 ## Beads Integration
 
