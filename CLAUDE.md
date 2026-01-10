@@ -71,10 +71,10 @@ The agent outputs `bd create` commands. Then call ExitPlanMode so user can revie
 
 When user approves (plan + findings + commands shown via ExitPlanMode):
 
-1. **Execute bd create commands** → create beads issues
-2. **Stop and provide next session prompt** → user will `/clear` to free context
-
-This enables the next session to immediately start implementing from ready beads issues.
+1. **Create worktree** - derive branch from plan title (prefix: `feat/`|`fix/`|`refactor/`, slug: sanitized title, max 30 chars)
+2. **Execute bd create commands** → create beads issues
+3. **Output cd command** for user to switch to worktree
+4. **Stop** - user runs `cd` and `/clear` for fresh session
 
 ## Working with Beads
 
@@ -123,43 +123,40 @@ Treat beads issue descriptions like GitHub issues. Include:
 **Rules:**
 - Never ask about already-claimed issues. Only show unassigned work when finding next tasks.
 
-### Direct Beads Workflow
-
-**Start work:**
-```bash
-bd show <id>                           # View issue details
-bd update <id> --claim                 # Atomically claim it
-git checkout -b feat/<id>-slug         # Create branch
-git push -u origin feat/<id>-slug
-```
-
-**Complete work:**
-1. Run quality gates
-2. `bd close <id>`
-3. Commit + push
-4. Create PR: `gh pr create`
-5. Use `/kas:merge` to finalize
-
 ## Git Worktree Workflow
 
-Each task can get an isolated worktree for parallel work capability.
+One worktree is created per plan after approval. All issues from that plan are worked in the same worktree.
+
+### Automatic Creation
+
+After plan approval, Claude:
+1. Creates branch + worktree from plan title
+2. Executes `bd create` commands for all issues
+3. Outputs `cd` command for user to switch
+
+### Conventions
+
+- **Path**: `.worktrees/<prefix>-<slug>/` (e.g., `.worktrees/feat-user-auth/`)
+- **Branch**: `<prefix>/<slug>` (e.g., `feat/user-auth`)
+- **Prefix**: `feat/` (default), `fix/` (for Fix:/Bug:), `refactor/` (for Refactor:)
 
 ### Working in Worktree
 
+```bash
+cd <worktree-path>          # Switch to worktree
+/kas:next                   # Claim next issue (no new worktree created)
+# ... work ...
+/kas:done                   # Commit + push
+/kas:merge                  # Merge PR + auto-cleanup worktree
+```
+
 - Use absolute paths for all file operations
 - Main repo stays on `main` branch
-- Each worktree is isolated
-- Enables parallel work in separate terminals
-
-### Branch Naming
-
-- Features: `feat/<id>-<description>`
-- Bug fixes: `fix/<id>-<description>`
-- Refactors: `refactor/<id>-<description>`
+- `/kas:next` in worktree skips worktree creation (already in one)
 
 ### Commit Messages
 
-Include issue reference at the end of commit messages:
+Include issue reference:
 ```
 feat: implement user authentication
 
@@ -168,8 +165,10 @@ Refs: beads-abc123
 
 ### PR Workflow
 
+- PR created after first commit (via `/kas:done` then `gh pr create`)
 - Always work on feat/ or fix/ branches
 - Never commit directly to main unless explicitly requested
+- `/kas:merge` cleans up worktree after merging
 
 ## Code Review (pr-review-toolkit)
 
@@ -240,52 +239,18 @@ cargo clippy
 
 ## Landing the Plane
 
-*Note: same as calling /kas:done*
+*Same as `/kas:done`*
 
-**When I say "let's land the plane"**, you MUST complete ALL steps below. The plane is NOT landed until `git push` succeeds.
+**CRITICAL: Work is NOT complete until `git push` succeeds.**
 
-**MANDATORY WORKFLOW:**
+1. File beads issues for remaining work (if any)
+2. Run quality gates (if code changed)
+3. Close completed beads issues
+4. Push: `git pull --rebase && git push`
+5. Add PR comment (if PR exists)
+6. Provide next session prompt
 
-1. **File beads issues for any remaining work** that needs follow-up
-2. **Run quality gates** (only if code changes were made)
-3. **Ensure all quality gates pass**
-4. **Update beads issues** - close finished work, update status
-5. **PUSH TO REMOTE - NON-NEGOTIABLE**:
-   ```bash
-   git pull --rebase
-   git push
-   git status  # MUST show "up to date with origin/*"
-   ```
-6. **Add PR comment** (if PR exists):
-   - Run: `gh pr view` to check for PR
-   - If found: add completion comment with summary
-   - If not found: skip gracefully
-7. **Clean up git state**:
-   ```bash
-   git stash clear
-   git remote prune origin
-   ```
-8. **Verify clean state** - All changes committed AND pushed
-9. **Verify daemon running**:
-   ```bash
-   bd daemon --status || echo "Warning: daemon not running"
-   ```
-10. **Choose follow-up issue** - Provide prompt for next session
-
-**Note**: Beads data syncs automatically via daemon to `util/beads-sync` branch. No manual `bd sync` needed.
-
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are!" - YOU must push
-- If push fails, resolve and retry until it succeeds
-
-**Then provide:**
-- Summary of what was completed
-- What issues were filed for follow-up
-- Status of quality gates
-- Confirmation that ALL changes have been pushed
-- Recommended prompt for next session
+**Output:** Summary of completed work, follow-up issues, and confirmation all changes pushed.
 
 ## Session Management
 
@@ -293,19 +258,7 @@ cargo clippy
 
 ### Approval Shortcuts
 
-**Traditional flow:**
-```
-Claude: "I've completed the implementation. Quality gates pass. Approve?"
-User: "Yes, looks good, please proceed"
-Claude: [Executes landing the plane]
-```
-
-**With shortcuts:**
-```
-Claude: "I've completed the implementation. Quality gates pass. Approve?"
-User: "/kas:done"
-Claude: [Executes landing the plane]
-```
+User responds to Claude's approval prompts with shortcuts (e.g., `/kas:done`) instead of verbose confirmation.
 
 ### /kas:save - Session Snapshot
 

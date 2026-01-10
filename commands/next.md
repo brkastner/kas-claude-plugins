@@ -41,6 +41,13 @@ Wait for user confirmation, then run `bd update <id> --claim`.
 
 Let user pick which one to work on.
 
+## Worktree Handling
+
+Detect worktree via `git rev-parse --git-common-dir` vs `--show-toplevel`.
+
+- **In worktree**: Claim only, no new worktree. Output: "Claimed `<id>`. Ready to work."
+- **In main repo**: Normal behavior (worktrees created at plan approval).
+
 ## Rules
 
 - Always run `bd ready --unassigned` fresh - don't rely on cached info
