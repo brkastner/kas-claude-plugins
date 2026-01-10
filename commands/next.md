@@ -46,7 +46,7 @@ Let user pick which one to work on.
 Detect worktree context before claiming:
 
 ```bash
-COMMON_DIR=$(git rev-parse --git-common-dir 2>/dev/null)
+COMMON_DIR=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
 TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null)
 
 # If COMMON_DIR != TOPLEVEL/.git, we're in a worktree

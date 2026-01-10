@@ -73,7 +73,7 @@ When user approves (plan + findings + commands shown via ExitPlanMode):
 
 1. **Create worktree for plan:**
    ```bash
-   REPO_ROOT=$(git rev-parse --show-toplevel)
+   REPO_ROOT=$(git rev-parse --path-format=absolute --git-common-dir | sed 's/\.git$//')
    # Derive prefix from plan title: Fix:/Bug: → fix/, Refactor: → refactor/, default → feat/
    PREFIX="feat"  # or fix/refactor based on title
    SLUG=$(echo "$PLAN_TITLE" | sed 's/^[^:]*: //' | tr '[:upper:]' '[:lower:]' | tr ' _' '-' | tr -cd 'a-z0-9-' | cut -c1-30 | sed 's/-$//')
