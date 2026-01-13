@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-01-13
+
+### Added
+- `/kas:setup` - Prepare project for kas workflow
+  - Validates prerequisites (bd ≥0.5.0, gh authenticated with repo scope, git ≥2.20.0)
+  - Detects worktree context and uses parent repo's .beads/
+  - Manages daemon with sync-before-change and auto-restart
+  - Verifies remote push access and creates util/beads-sync branch
+  - Checks if kas plugin is enabled in target project
+  - Shows summary with PASS/FAIL/WARN verdict
+
+### Changed
+- CLAUDE.md now includes plugin development context section
+
 ## [1.3.0] - 2025-01-09
 
 ### Added
