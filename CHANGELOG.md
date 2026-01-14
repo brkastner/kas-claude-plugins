@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-01-14
+
+### Changed
+- **Multi-plugin marketplace structure**: Restructured repository to support multiple plugins
+  - kas plugin moved to `plugins/kas/` subdirectory
+  - marketplace.json updated with subdirectory source path
+  - Repository renamed from `kas-claude-plugin` to `kas-claude-plugins`
+- Plugin reference changed from `kas@kas-claude-plugin` to `kas@kas-claude-plugins`
+
+### Added
+- CONTRIBUTING.md with guidelines for plugin developers
+- Plugin-specific README at `plugins/kas/README.md`
+- Documentation of plugin subdirectory verification at `docs/plugin-subdirectory-verification.md`
+
+### Migration
+Update your `.claude/settings.json`:
+```json
+{
+  "enabledPlugins": {
+    "kas@kas-claude-plugins": true
+  }
+}
+```
+
 ## [1.6.0] - 2025-01-13
 
 ### Added

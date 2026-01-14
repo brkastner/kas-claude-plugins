@@ -1,5 +1,5 @@
 {
   "enabledPlugins": {
-    "kas@kas-claude-plugin": true
+    "kas@kas-claude-plugins": true
   }
 }
