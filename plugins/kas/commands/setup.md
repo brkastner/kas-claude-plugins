@@ -284,12 +284,12 @@ if [[ ! -f "$SETTINGS_FILE" ]]; then
   echo "  Create settings.json and enable plugin? (prompt user)"
   # If user confirms, create:
   # mkdir -p "$REPO_ROOT/.claude"
-  # echo '{"enabledPlugins":{"kas@kas-claude-plugin":true}}' > "$SETTINGS_FILE"
+  # echo '{"enabledPlugins":{"kas@kas-claude-plugins":true}}' > "$SETTINGS_FILE"
   # WARN - continue but note the issue
 else
   # Check if kas plugin is enabled (use jq if available, fallback to grep)
   if command -v jq &>/dev/null; then
-    ENABLED=$(jq -r '.enabledPlugins["kas@kas-claude-plugin"] // false' "$SETTINGS_FILE" 2>/dev/null)
+    ENABLED=$(jq -r '.enabledPlugins["kas@kas-claude-plugins"] // false' "$SETTINGS_FILE" 2>/dev/null)
     if [[ "$ENABLED" == "true" ]]; then
       echo "[PASS] kas plugin enabled"
     else
@@ -300,7 +300,7 @@ else
     fi
   else
     # Fallback: check for pattern on same/adjacent lines
-    if grep -q '"kas@kas-claude-plugin"[[:space:]]*:[[:space:]]*true' "$SETTINGS_FILE"; then
+    if grep -q '"kas@kas-claude-plugins"[[:space:]]*:[[:space:]]*true' "$SETTINGS_FILE"; then
       echo "[PASS] kas plugin enabled"
     else
       echo "[WARN] kas plugin not enabled in settings.json"
@@ -314,7 +314,7 @@ fi
 # To enable kas plugin, settings.json needs:
 # {
 #   "enabledPlugins": {
-#     "kas@kas-claude-plugin": true
+#     "kas@kas-claude-plugins": true
 #   }
 # }
 ```

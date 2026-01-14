@@ -1,0 +1,12 @@
+{
+  "name": "kas",
+  "description": "Workflow automation with beads task tracking, session management, and code review",
+  "version": "1.6.0",
+  "author": {
+    "name": "Kas",
+    "url": "https://github.com/brkastner"
+  },
+  "repository": "https://github.com/brkastner/kas-claude-plugins",
+  "license": "MIT",
+  "keywords": ["workflow", "beads", "session", "code-review", "planning", "worktree"]
+}

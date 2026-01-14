@@ -2,7 +2,7 @@
 
 ## Plugin Development Context
 
-**This is a Claude Code plugin** (`kas-claude-plugin`), not a regular project.
+**This is a Claude Code plugin** (`kas-claude-plugins`), not a regular project.
 
 **Plugin structure:**
 - `.claude-plugin/plugin.json` - plugin metadata

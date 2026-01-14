@@ -1,5 +1,6 @@
 {
-  "name": "kas-claude-plugin",
+  "name": "kas-claude-plugins",
+  "description": "A collection of Claude Code plugins for workflow automation, task tracking, and code review",
   "owner": {
     "name": "Kas",
     "url": "https://github.com/brkastner"
@@ -7,9 +8,9 @@
   "plugins": [
     {
       "name": "kas",
-      "description": "Workflow automation with beads, sessions, and code review",
-      "version": "1.4.1",
-      "source": "./",
+      "description": "Workflow automation with beads task tracking, session management, and code review",
+      "version": "1.7.0",
+      "source": "./plugins/kas",
       "category": "productivity"
     }
   ]
