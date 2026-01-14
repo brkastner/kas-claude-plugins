@@ -17,3 +17,4 @@ node_modules/
 
 # Beads (each project has its own database)
 .beads/
+.worktrees/
