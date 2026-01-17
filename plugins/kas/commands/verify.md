@@ -1,10 +1,10 @@
 ---
-description: Tiered code verification with smart agent selection
+description: Tiered verification with smart agent selection
 ---
 
 # /kas:verify - Verify Implementation
 
-Tiered verification with early-exit. Only runs agents relevant to the changes.
+Tiered verification with early-exit. Validates both code quality AND plan completion.
 
 ## Workflow
 
@@ -16,22 +16,24 @@ git diff --stat
 git diff
 ```
 
-If no changes, report "Nothing to verify" and stop.
+If no changes (empty diff), report "Nothing to verify" and stop.
 
-**Analyze the diff to determine which agents are relevant:**
+**Analyze the diff to determine which Tier 1 agents are relevant:**
 
-| Change Pattern | Agents to Run |
-|----------------|---------------|
+| Change Pattern | Tier 1 Agents to Run |
+|----------------|----------------------|
 | Any code changes | code-reviewer (always) |
 | try/catch, error handling, catch blocks | + silent-failure-hunter |
 | Comments, docstrings, JSDoc, `//`, `/*`, `"""` | + comment-analyzer |
 | Type definitions, interfaces, schemas, generics | + type-design-analyzer |
 | Test files, describe/it/test blocks | + pr-test-analyzer |
 
-**Skip agents that have no relevant changes.** For example:
-- Markdown-only changes → skip all static analysis, proceed to Tier 2
-- Config file changes → code-reviewer only
-- Type definition changes → code-reviewer + type-design-analyzer
+**Tier 1 agent selection by change type:**
+- Code changes → run relevant Tier 1 agents based on patterns above
+- Markdown/docs only → skip Tier 1, proceed directly to Tier 2
+- Config files only → code-reviewer only, then Tier 2
+
+**Important:** Tier 2 (reality assessment) ALWAYS runs if there are any changes, because it validates plan completion - not just code quality.
 
 ### 2. Tier 1: Static Analysis (parallel, only relevant agents)
 
@@ -80,7 +82,9 @@ Return findings with coverage assessment."
 | Any medium issues | NEEDS CHANGES | Stop, present findings |
 | All clean (or no agents ran) | Continue | Proceed to Tier 2 |
 
-### 3. Tier 2: Dynamic Assessment (only if Tier 1 clean)
+### 3. Tier 2: Reality Assessment (if Tier 1 clean or skipped)
+
+**Always runs** unless Tier 1 found issues. Validates that implementation matches the plan.
 
 Launch **one agent**:
 
@@ -88,8 +92,11 @@ Launch **one agent**:
 ```
 "Run reality assessment on the current git changes.
 Read agent instructions at agents/project-reality-manager.md (relative to plugin root)
+Validate implementation matches plan requirements.
 Return gap analysis and functional state assessment."
 ```
+
+**When Tier 1 was skipped** (docs/config only): Reality assessment is the primary validation - it ensures the claimed work is actually complete per the plan.
 
 **Tier 2 Exit Conditions:**
 
@@ -99,7 +106,9 @@ Return gap analysis and functional state assessment."
 | Severe gaps | BLOCKED | Stop, present findings |
 | Clean | VERIFIED | Proceed to Tier 3 |
 
-### 4. Tier 3: Polish (only if VERIFIED)
+### 4. Tier 3: Polish (only if VERIFIED and code changes exist)
+
+**Skip if changes are docs/config only** - simplification only applies to code.
 
 Launch **one agent**:
 
@@ -125,9 +134,10 @@ Do NOT apply fixes automatically.
 ## Rules
 
 - Analyze diff FIRST to determine relevant agents
-- Skip agents with no relevant changes (saves tokens)
+- Skip Tier 1 agents with no relevant changes (saves tokens)
 - Tier 1 agents run in parallel for speed
-- Tier 2 only runs if Tier 1 has zero issues
-- Tier 3 only runs if Tier 2 returns VERIFIED
+- Tier 2 (reality) runs if Tier 1 is clean OR was skipped (docs/config only)
+- Tier 3 (simplify) only runs if VERIFIED AND code changes exist
 - Never apply fixes without user approval
-- Empty diff = exit early, don't launch agents
+- Empty diff = exit early, don't launch any agents
+- Non-code changes still need Tier 2 to validate plan completion
