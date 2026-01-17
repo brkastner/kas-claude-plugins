@@ -20,6 +20,7 @@ Workflow automation with beads task tracking, session management, and code revie
 
 | Command | Description |
 |---------|-------------|
+| `/kas:start` | Start structured planning workflow with beads integration |
 | `/kas:setup` | Prepare project: validate prerequisites, init beads, configure daemon |
 | `/kas:done` | Complete session: commit, push, close issues |
 | `/kas:save` | Snapshot session: push work, generate continuation prompt |

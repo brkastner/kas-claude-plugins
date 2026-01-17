@@ -38,9 +38,11 @@
 ## Complete Workflow
 
 ```
-Plan Mode (for new features)
+/kas:start (enter plan mode with beads context)
     ↓
-Plan Reviewer → Task Splitter → Land the plane (branch + beads on GitHub)
+Plan Mode (structured exploration + design)
+    ↓
+Plan Reviewer → Task Splitter → ExitPlanMode
     ↓
 Session Start: "start on beads-xxx" → Create branch
     ↓
@@ -64,6 +66,8 @@ Session boundary:
 3. After code-simplifier: summarize suggestions, get approval before applying
 
 ## Plan Mode
+
+> Use `/kas:start` to enter plan mode with proper workflow. This ensures beads context is loaded and review agents run automatically.
 
 - At the end of each plan, give me a list of unresolved questions to answer, if any. Make the questions extremely concise. Sacrifice grammar for the sake of concision.
 - Every plan should include high level requirements, architecture decisions, data models, and a robust testing strategy

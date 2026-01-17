@@ -1,7 +1,7 @@
 {
   "name": "kas",
   "description": "Workflow automation with beads task tracking, session management, and code review",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": {
     "name": "Kas",
     "url": "https://github.com/brkastner"
